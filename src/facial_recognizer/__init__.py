@@ -14,7 +14,7 @@ class FacialRecognizer:
               "GhostFaceNet"]
 
     def __init__(self):
-        self.model = "DeepFace"
+        self.model = FacialRecognizer.models[1]
         self.detector_backend = "yolov8"
         self.match_threshold = 0.75
         self.db_path = os.path.join(os.path.dirname(__file__)) + "/../../faces_database"
@@ -54,11 +54,10 @@ def process_faces():
 
         face_extraction = frame[y1:y1 + height, x1:x1 + width]
         analysis = facial_recognizer.facial_analysis(face_extraction)
-
-        dominant_emotion = analysis[0]["dominant_emotion"]
+        emotion = analysis[0]["dominant_emotion"]
 
         if width > 0 and height > 0:  # Check if valid bounding box
-            face_tracker.track_face(face_name, x1, y1, width, height)
+            face_tracker.track_face(face_name, x1, y1, width, height, emotion)
 
     # read stable faces from face_tracker and print them using function show_face
     stable_faces = face_tracker.get_stable_faces()
