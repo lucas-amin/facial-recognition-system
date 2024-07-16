@@ -3,6 +3,8 @@ import cv2
 
 class Face:
     def __init__(self, name, x1, y1, width, height):
+        self.EMOTION_CHANGE_THRESHOLD = 10
+        self.EMOTION_VALIDATION_THRESHOLD = 20
         self.name = name
         self.x1 = x1
         self.y1 = y1
@@ -15,6 +17,10 @@ class Face:
         self.current_emotion = ""
         self.validated = False
 
+        self.happy_emotion_validation = False
+        self.sad_emotion_validation = False
+        self.neutral_emotion_validation = False
+
     def get_face(self):
         return self.x1, self.y1, self.width, self.height, self.presence_counter
 
@@ -25,6 +31,31 @@ class Face:
         else:
             self.emotion_counter += 1
 
+        # Validate emotions, if emotion is detected 40 times, then it is validated, it must be in the order happy -> Sad -> Neutral
+        # If the order is broken, all are invalid and counters go to zero
+        if self.current_emotion == "happy" and self.emotion_counter >= self.EMOTION_VALIDATION_THRESHOLD:
+            self.happy_emotion_validation = True
+            self.sad_emotion_validation = False
+            self.neutral_emotion_validation = False
+
+        elif (self.current_emotion == "sad" and self.happy_emotion_validation and
+              self.emotion_counter >= self.EMOTION_VALIDATION_THRESHOLD):
+            self.sad_emotion_validation = True
+
+        elif (self.current_emotion == "neutral" and self.sad_emotion_validation and
+              self.emotion_counter >= self.EMOTION_VALIDATION_THRESHOLD):
+            self.neutral_emotion_validation = True
+            self.validated = True
+        elif (not (self.current_emotion == "sad" and self.happy_emotion_validation) and not
+                (self.current_emotion == "neutral" and self.sad_emotion_validation))\
+                and self.emotion_counter >= self.EMOTION_CHANGE_THRESHOLD:
+            self.happy_emotion_validation = False
+            self.sad_emotion_validation = False
+            self.neutral_emotion_validation = False
+
+        print(f"Emotion: {self.current_emotion}, {self.emotion_counter}, {self.happy_emotion_validation},"
+              f" {self.sad_emotion_validation}, {self.neutral_emotion_validation}")
+
     def increment_presence(self):
         self.presence_counter += 1
         self.absence_counter = 0
@@ -33,18 +64,19 @@ class Face:
         self.absence_counter += 1
 
     def print_face_on_frame(self, frame):
-        color = (255, 255, 255)
+        color = (100, 100, 100)
+        if self.current_emotion == "neutral":
+            color = (255, 255, 255)
         if self.current_emotion == "happy":
             color = (0, 255, 0)
         elif self.current_emotion == "sad":
             color = (255, 0, 0)
-        elif self.current_emotion == "angry":
-            color = (0, 0, 255)
         cv2.rectangle(frame, (self.x1, self.y1), (self.x1 + self.width, self.y1 + self.height), color, 2)
         cv2.putText(frame, f"{self.name}",
                     (self.x1, self.y1 - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
-        print(f"Best match: {self.name}, Emotion: {self.current_emotion}, {self.emotion_counter}")
+
+
 
 
 class FaceTracker:
