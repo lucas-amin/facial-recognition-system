@@ -13,7 +13,8 @@ face_tracker = FaceTracker()
 
 def process_faces(frame: np.ndarray):
     faces = deepface_wrapper.find_match_in_database(frame)
-    image_height, image_width, _ = frame.shape
+
+    face_tracker.set_image_shape(frame)
 
     if len(faces) > 1:
         message = f"Please provide only one face in the frame."
@@ -22,21 +23,16 @@ def process_faces(frame: np.ndarray):
         face_match = faces[0]
         best_face_match = face_match.loc[face_match['distance'].idxmin()]
         x1, y1, width, height = best_face_match[["source_x", "source_y", "source_w", "source_h"]].astype(int)
-        distance_ratio = width / image_width
-        if distance_ratio < 0.16:
-            message = f"Please come closer to the camera."
-            cv2.putText(frame, message, (0, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (100, 255, 100), 2)
-            return
 
         face_name = best_face_match["identity"].split("/")[-1].split(".")[0]
 
-        face_extraction = frame[y1:y1 + height, x1:x1 + width]
+        face_image = frame[y1:y1 + height, x1:x1 + width]
 
-        analysis = deepface_wrapper.facial_analysis(face_extraction)
+        analysis = deepface_wrapper.facial_analysis(face_image)
         emotion = analysis[0]["dominant_emotion"]
 
         if width > 0 and height > 0:  # Check if valid bounding box
-            face_tracker.track_face(face_name, x1, y1, width, height, emotion)
+            face_tracker.track_face(face_name, face_image, x1, y1, width, height, emotion)
 
         # read stable faces from face_tracker and print them using function show_face
         stable_face = face_tracker.get_stable_face()

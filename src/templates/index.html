@@ -37,7 +37,7 @@
 </head>
 <body>
     <div id="app">
-        <h1>VerifyMy Facial Verification</h1>
+        <h1>VerifyMy Facial Validation Project</h1>
         <div id="video-container">
             <img id="video-feed" src="{{ url_for('video_feed') }}" alt="Webcam Stream">
         </div>
@@ -50,10 +50,10 @@
         const videoContainer = document.getElementById('video-container');
         const app = document.getElementById('app');
         const steps = [
-            { instruction: "Please show only one face close to the camera!", borderColor: "#999999" },
-            { instruction: "Please smile widely! 😊", borderColor: "green" },
-            { instruction: "Now, make a sad face. 😔", borderColor: "#0099cc" },
-            { instruction: "Back to a happy smile! 😁", borderColor: "green" },
+            { instruction: "To validate - Please show only one face close to the camera!", borderColor: "#999999" },
+            { instruction: "To validate - Please smile widely! 😊", borderColor: "#00FF00" },
+            { instruction: "To validate - Now, make a sad face. 😔", borderColor: "#0000FF" },
+            { instruction: "To validate - Back to a happy smile! 😁", borderColor: "#00FF00" },
             { instruction: "Face validated! 😁", borderColor: "white" },
         ];
 
@@ -70,7 +70,7 @@
 
                     if (emotionIndex === steps.length - 1) {
                         // All steps completed, verification successful
-                        document.querySelector('.instruction').textContent = "Verification successful!";
+                        document.querySelector('.instruction').textContent = "Validation successful!";
                         app.style.backgroundColor = '#99ff99';
                     }
                 } else {
@@ -83,7 +83,7 @@
         }
 
         video.onload = function() {
-            setInterval(fetchEmotion, 2000); // Call fetchEmotion every 2 seconds
+            setInterval(fetchEmotion, 500); // Call fetchEmotion every 2 seconds
         };
 
         // Optional: Error handling for failed stream

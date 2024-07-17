@@ -10,7 +10,7 @@ class DeepFaceWrapper:
     models = ["VGG-Face", "Facenet", "Facenet512", "OpenFace", "DeepID", "ArcFace", "SFace", "GhostFaceNet"]
 
     def __init__(self):
-        self.model = "Facenet512"
+        self.model = "Facenet"
         self.detector_backend = "yolov8"
         self.match_threshold = 0.75
         self.db_path = os.path.join(os.path.dirname(__file__)) + "/../../faces_database"
