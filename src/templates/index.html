@@ -1,15 +1,96 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Webcam with Face Processing</title>
+    <meta charset="UTF-8">
+    <title>VerifyMy Facial Verification</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        #video-container {
+            width: 640px; /* Adjust width as needed */
+            height: 480px; /* Adjust height as needed */
+            margin: 0 auto;
+            border: 5px solid #ccc; /* Neutral border initially */
+            overflow: hidden;
+        }
+
+        #video-feed {
+            width: 100%;
+            height: 100%;
+        }
+
+        .instruction {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #555;
+        }
+    </style>
 </head>
 <body>
-    <h1>Webcam Stream</h1>
-    <img src="{{ url_for('video_feed') }}" alt="webcam feed">
-</body>
-<body>
-    <h1>To validate, make a neutral face, then a happy face, then a sad face</h1>
-</body>
+    <div id="app">
+        <h1>VerifyMy Facial Verification</h1>
+        <div id="video-container">
+            <img id="video-feed" src="{{ url_for('video_feed') }}" alt="Webcam Stream">
+        </div>
+        <p class="instruction">Please position your face within the frame.</p>
+    </div>
 
 
+    <script>
+        const video = document.getElementById('video-feed');
+        const videoContainer = document.getElementById('video-container');
+        const app = document.getElementById('app');
+        const steps = [
+            { instruction: "Please show only one face close to the camera!", borderColor: "#999999" },
+            { instruction: "Please smile widely! 😊", borderColor: "green" },
+            { instruction: "Now, make a sad face. 😔", borderColor: "#0099cc" },
+            { instruction: "Back to a happy smile! 😁", borderColor: "green" },
+            { instruction: "Face validated! 😁", borderColor: "white" },
+        ];
+
+        async function fetchEmotion() {
+            try {
+                const response = await fetch('/emotion');
+                const data = await response.json();
+                const emotionIndex = data.emotion;
+
+                if (emotionIndex >= 0 && emotionIndex < steps.length) {
+                    const step = steps[emotionIndex];
+                    document.querySelector('.instruction').textContent = step.instruction;
+                    videoContainer.style.borderColor = step.borderColor;
+
+                    if (emotionIndex === steps.length - 1) {
+                        // All steps completed, verification successful
+                        document.querySelector('.instruction').textContent = "Verification successful!";
+                        app.style.backgroundColor = '#99ff99';
+                    }
+                } else {
+                    console.error("Invalid emotion index received from server.");
+                }
+            } catch (error) {
+                console.error("Error fetching emotion:", error);
+                document.querySelector('.instruction').textContent = "Error processing facial expression. Please try again.";
+            }
+        }
+
+        video.onload = function() {
+            setInterval(fetchEmotion, 2000); // Call fetchEmotion every 2 seconds
+        };
+
+        // Optional: Error handling for failed stream
+        video.onerror = function() {
+            console.error('Error loading webcam stream');
+            document.querySelector('.instruction').textContent = "Error loading webcam. Please try again.";
+        };
+    </script>
+</body>
 </html>

@@ -1,3 +1,4 @@
 deepface==0.0.92
 ultralytics
 Flask
+pytest
