@@ -72,6 +72,8 @@
                         // All steps completed, verification successful
                         document.querySelector('.instruction').textContent = "Validation successful!";
                         app.style.backgroundColor = '#99ff99';
+                    } else {
+                        app.style.backgroundColor = '#ffffff';
                     }
                 } else {
                     console.error("Invalid emotion index received from server.");

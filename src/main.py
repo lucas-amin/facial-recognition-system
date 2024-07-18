@@ -1,3 +1,5 @@
+import logging
+
 import cv2
 import numpy as np
 from flask import Response, render_template, Flask, jsonify
@@ -12,8 +14,13 @@ face_tracker = FaceTracker()
 
 
 def process_faces(frame: np.ndarray):
-    faces = deepface_wrapper.find_match_in_database(frame)
-
+    try:
+        faces = deepface_wrapper.find_match_in_database(frame)
+    except ValueError:
+        cv2.putText(frame, f"Spoofing attempt detected! Please show your real face",
+                    (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+        logging.error("Spoof detected in the given image.")
+        return
     face_tracker.set_image_shape(frame)
 
     if len(faces) > 1:
@@ -29,10 +36,11 @@ def process_faces(frame: np.ndarray):
         face_image = frame[y1:y1 + height, x1:x1 + width]
 
         analysis = deepface_wrapper.facial_analysis(face_image)
+
         emotion = analysis[0]["dominant_emotion"]
 
         if width > 0 and height > 0:  # Check if valid bounding box
-            face_tracker.track_face(face_name, face_image, x1, y1, width, height, emotion)
+            face_tracker.track_face(face_name, face_image, x1, y1, width, height, emotion,)
 
         # read stable faces from face_tracker and print them using function show_face
         stable_face = face_tracker.get_stable_face()
@@ -49,12 +57,10 @@ def gen_frames():
     frame_n = 0
     while True:
         ret, frame = cap.read()
-
         if not ret:
-            print("Error: failed to capture frame")
+            logging.error("Error: failed to capture frame")
             break
-        if frame_n % 5 == 0:
-            process_faces(frame)
+        process_faces(frame) if frame_n % 5 == 0 else None
 
         ret, buffer = cv2.imencode('.jpg', frame)
         frame_img = buffer.tobytes()
@@ -65,7 +71,6 @@ def gen_frames():
 @app.route('/emotion')
 def get_next_desired_emotion():
     emotion = face_tracker.output_emotion
-    print("sending emotion" + str(emotion))
     return jsonify({'emotion': emotion})
 
 
