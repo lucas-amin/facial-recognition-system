@@ -13,15 +13,19 @@ deepface_wrapper = DeepFaceWrapper()
 face_tracker = FaceTracker()
 
 
-def process_faces(frame: np.ndarray):
+def process_faces(frame: np.ndarray) -> None:
+    """
+    Process the faces in the given frame and update the face_tracker with the detected faces.
+    :param frame: frame to extract faces, update face_tracker and show stable faces
+    """
     try:
         faces = deepface_wrapper.find_match_in_database(frame)
+        face_tracker.set_image_shape(frame)
     except ValueError:
-        cv2.putText(frame, f"Spoofing attempt detected! Please show your real face",
-                    (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+        cv2.putText(frame, f"Spoofing attempt detected! Please show your real face", (10, 50),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
         logging.error("Spoof detected in the given image.")
         return
-    face_tracker.set_image_shape(frame)
 
     if len(faces) > 1:
         message = f"Please provide only one face in the frame."
@@ -35,12 +39,16 @@ def process_faces(frame: np.ndarray):
 
         face_image = frame[y1:y1 + height, x1:x1 + width]
 
-        analysis = deepface_wrapper.facial_analysis(face_image)
+        try:
+            analysis = deepface_wrapper.facial_analysis(face_image)
+        except:
+            logging.error("Error: failed to analyze face")
+            return
 
         emotion = analysis[0]["dominant_emotion"]
 
         if width > 0 and height > 0:  # Check if valid bounding box
-            face_tracker.track_face(face_name, face_image, x1, y1, width, height, emotion,)
+            face_tracker.track_face(face_name, face_image, x1, y1, width, height, emotion, )
 
         # read stable faces from face_tracker and print them using function show_face
         stable_face = face_tracker.get_stable_face()
@@ -70,8 +78,7 @@ def gen_frames():
 
 @app.route('/emotion')
 def get_next_desired_emotion():
-    emotion = face_tracker.output_emotion
-    return jsonify({'emotion': emotion})
+    return jsonify({'emotion': face_tracker.validation_step})
 
 
 @app.route('/')

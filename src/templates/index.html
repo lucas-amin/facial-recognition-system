@@ -36,63 +36,63 @@
     </style>
 </head>
 <body>
-    <div id="app">
-        <h1>VerifyMy Facial Validation Project</h1>
-        <div id="video-container">
-            <img id="video-feed" src="{{ url_for('video_feed') }}" alt="Webcam Stream">
-        </div>
-        <p class="instruction">Please position your face within the frame.</p>
+<div id="app">
+    <h1>VerifyMy Facial Validation Project</h1>
+    <div id="video-container">
+        <img alt="Webcam Stream" id="video-feed" src="{{ url_for('video_feed') }}">
     </div>
+    <p class="instruction">Please position your face within the frame.</p>
+</div>
 
 
-    <script>
-        const video = document.getElementById('video-feed');
-        const videoContainer = document.getElementById('video-container');
-        const app = document.getElementById('app');
-        const steps = [
-            { instruction: "To validate - Please show only one face close to the camera!", borderColor: "#999999" },
-            { instruction: "To validate - Please smile widely! 😊", borderColor: "#00FF00" },
-            { instruction: "To validate - Now, make a sad face. 😔", borderColor: "#0000FF" },
-            { instruction: "To validate - Back to a happy smile! 😁", borderColor: "#00FF00" },
-            { instruction: "Face validated! 😁", borderColor: "white" },
-        ];
+<script>
+    const video = document.getElementById('video-feed');
+    const videoContainer = document.getElementById('video-container');
+    const app = document.getElementById('app');
+    const steps = [
+        { instruction: "To validate - Please show only one face close to the camera!", borderColor: "#999999" },
+        { instruction: "To validate - Please smile widely! 😊", borderColor: "#00FF00" },
+        { instruction: "To validate - Now, make a sad face. 😔", borderColor: "#0000FF" },
+        { instruction: "To validate - Back to a happy smile! 😁", borderColor: "#00FF00" },
+        { instruction: "Face validated! 😁", borderColor: "white" },
+    ];
 
-        async function fetchEmotion() {
-            try {
-                const response = await fetch('/emotion');
-                const data = await response.json();
-                const emotionIndex = data.emotion;
+    async function fetchEmotion() {
+        try {
+            const response = await fetch('/emotion');
+            const data = await response.json();
+            const emotionIndex = data.emotion;
 
-                if (emotionIndex >= 0 && emotionIndex < steps.length) {
-                    const step = steps[emotionIndex];
-                    document.querySelector('.instruction').textContent = step.instruction;
-                    videoContainer.style.borderColor = step.borderColor;
+            if (emotionIndex >= 0 && emotionIndex < steps.length) {
+                const step = steps[emotionIndex];
+                document.querySelector('.instruction').textContent = step.instruction;
+                videoContainer.style.borderColor = step.borderColor;
 
-                    if (emotionIndex === steps.length - 1) {
-                        // All steps completed, verification successful
-                        document.querySelector('.instruction').textContent = "Validation successful!";
-                        app.style.backgroundColor = '#99ff99';
-                    } else {
-                        app.style.backgroundColor = '#ffffff';
-                    }
+                if (emotionIndex === steps.length - 1) {
+                    // All steps completed, verification successful
+                    document.querySelector('.instruction').textContent = "Validation successful!";
+                    app.style.backgroundColor = '#99ff99';
                 } else {
-                    console.error("Invalid emotion index received from server.");
+                    app.style.backgroundColor = '#ffffff';
                 }
-            } catch (error) {
-                console.error("Error fetching emotion:", error);
-                document.querySelector('.instruction').textContent = "Error processing facial expression. Please try again.";
+            } else {
+                console.error("Invalid emotion index received from server.");
             }
+        } catch (error) {
+            console.error("Error fetching emotion:", error);
+            document.querySelector('.instruction').textContent = "Error processing facial expression. Please try again.";
         }
+    }
 
-        video.onload = function() {
-            setInterval(fetchEmotion, 500); // Call fetchEmotion every 2 seconds
-        };
+    video.onload = function() {
+        setInterval(fetchEmotion, 500); // Call fetchEmotion every 2 seconds
+    };
 
-        // Optional: Error handling for failed stream
-        video.onerror = function() {
-            console.error('Error loading webcam stream');
-            document.querySelector('.instruction').textContent = "Error loading webcam. Please try again.";
-        };
-    </script>
+    // Optional: Error handling for failed stream
+    video.onerror = function() {
+        console.error('Error loading webcam stream');
+        document.querySelector('.instruction').textContent = "Error loading webcam. Please try again.";
+    };
+</script>
 </body>
 </html>
